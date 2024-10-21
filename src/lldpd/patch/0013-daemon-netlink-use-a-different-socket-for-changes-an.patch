@@ -1,0 +1,208 @@
+From f1e1d52714485a4b5bb03dfb6c240c53912d7257 Mon Sep 17 00:00:00 2001
+From: Vincent Bernat <vincent@bernat.ch>
+Date: Mon, 4 Dec 2023 16:58:23 +0100
+Subject: [PATCH] daemon/netlink: use a different socket for changes and
+ queries
+
+There is a race condition when using the same socket for both. We need
+to subscribe for changes before getting the current state as we don't
+want to miss an update happening while we get the initial state, but if
+there is such an update, the Netlink messages we receive may not be the
+ones we expect.
+
+Fix #611
+---
+ src/daemon/netlink.c | 105 ++++++++++++++++++++++++++-----------------
+ 1 file changed, 64 insertions(+), 41 deletions(-)
+
+diff --git a/src/daemon/netlink.c b/src/daemon/netlink.c
+index c89e149..0818c59 100644
+--- a/src/daemon/netlink.c
++++ b/src/daemon/netlink.c
+@@ -34,7 +34,8 @@ struct netlink_req {
+ };
+ 
+ struct lldpd_netlink {
+-	int nl_socket;
++	int nl_socket_queries;
++	int nl_socket_changes;
+ 	int nl_socket_recv_size;
+ 	/* Cache */
+ 	struct interfaces_device_list *devices;
+@@ -88,41 +89,61 @@ netlink_socket_set_buffer_size(int s, int optname, const char *optname_str, int
+  * @return 0 on success, -1 otherwise
+  */
+ static int
+-netlink_connect(struct lldpd *cfg, int protocol, unsigned groups)
++netlink_connect(struct lldpd *cfg, unsigned groups)
+ {
+-	int s;
+-	struct sockaddr_nl local = {
+-		.nl_family = AF_NETLINK,
++	int s1 = -1, s2 = -1;
++	struct sockaddr_nl local = { .nl_family = AF_NETLINK,
+ 		.nl_pid = 0,
+ 		.nl_groups = groups
+ 	};
+ 
+-	/* Open Netlink socket */
+-	log_debug("netlink", "opening netlink socket");
+-	s = socket(AF_NETLINK, SOCK_RAW, protocol);
+-	if (s == -1) {
+-		log_warn("netlink", "unable to open netlink socket");
+-		return -1;
++	/* Open Netlink socket for subscriptions */
++	log_debug("netlink", "opening netlink sockets");
++	s1 = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
++	if (s1 == -1) {
++		log_warn("netlink", "unable to open netlink socket for changes");
++		goto error;
+ 	}
+ 	if (NETLINK_SEND_BUFSIZE &&
+-	    netlink_socket_set_buffer_size(s,
+-	    SO_SNDBUF, "SO_SNDBUF", NETLINK_SEND_BUFSIZE) == -1)
+-		return -1;
++	    netlink_socket_set_buffer_size(s1, SO_SNDBUF, "SO_SNDBUF",
++		NETLINK_SEND_BUFSIZE) == -1) {
++		log_warn("netlink", "unable to set send buffer size");
++		goto error;
++	}
+ 
+-	int rc = netlink_socket_set_buffer_size(s,
+-	    SO_RCVBUF, "SO_RCVBUF", NETLINK_RECEIVE_BUFSIZE);
++	int rc = netlink_socket_set_buffer_size(s1, SO_RCVBUF, "SO_RCVBUF",
++	    NETLINK_RECEIVE_BUFSIZE);
+ 	switch (rc) {
+-	case -1: return -1;
+-	case -2: cfg->g_netlink->nl_socket_recv_size = 0; break;
+-	default: cfg->g_netlink->nl_socket_recv_size = rc; break;
++	case -1:
++		log_warn("netlink", "unable to set receiver buffer size");
++		goto error;
++	case -2:
++		/* Cannot set size */
++		cfg->g_netlink->nl_socket_recv_size = 0;
++		break;
++	default:
++		cfg->g_netlink->nl_socket_recv_size = rc;
++		break;
+ 	}
+-	if (groups && bind(s, (struct sockaddr *)&local, sizeof(struct sockaddr_nl)) < 0) {
++	if (groups &&
++	    bind(s1, (struct sockaddr *)&local, sizeof(struct sockaddr_nl)) < 0) {
+ 		log_warn("netlink", "unable to bind netlink socket");
+-		close(s);
+-		return -1;
++		goto error;
+ 	}
+-	cfg->g_netlink->nl_socket = s;
++
++	/* Opening Netlink socket to for queries */
++	s2 = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
++	if (s2 == -1) {
++		log_warn("netlink", "unable to open netlink socket for queries");
++		goto error;
++	}
++	cfg->g_netlink->nl_socket_changes = s1;
++	cfg->g_netlink->nl_socket_queries = s2;
+ 	return 0;
++error:
++	if (s1 != -1) close(s1);
++	if (s2 != -1) close(s2);
++	return -1;
+ }
+ 
+ /**
+@@ -438,14 +459,12 @@ netlink_merge(struct interfaces_device *old, struct interfaces_device *new)
+  * @return     0 on success, -1 on error
+  */
+ static int
+-netlink_recv(struct lldpd *cfg,
+-    struct interfaces_device_list *ifs,
++netlink_recv(struct lldpd *cfg, int s, struct interfaces_device_list *ifs,
+     struct interfaces_address_list *ifas)
+ {
+ 	int end = 0, ret = 0, flags, retry = 0;
+ 	struct iovec iov;
+ 	int link_update = 0;
+-	int s = cfg->g_netlink->nl_socket;
+ 
+ 	struct interfaces_device *ifdold;
+ 	struct interfaces_device *ifdnew;
+@@ -484,9 +503,11 @@ retry:
+ 				goto out;
+ 			}
+ 			int rsize = cfg->g_netlink->nl_socket_recv_size;
+-			if (errno == ENOBUFS &&
+-			    rsize > 0 && rsize < NETLINK_MAX_RECEIVE_BUFSIZE) {
+-				/* Try to increase buffer size */
++			if (errno == ENOBUFS && rsize > 0 &&
++			    rsize < NETLINK_MAX_RECEIVE_BUFSIZE &&
++			    s == cfg->g_netlink->nl_socket_changes) {
++				/* Try to increase buffer size, only for the
++				 * socket used to receive changes */
+ 				rsize *= 2;
+ 				if (rsize > NETLINK_MAX_RECEIVE_BUFSIZE) {
+ 					rsize = NETLINK_MAX_RECEIVE_BUFSIZE;
+@@ -734,7 +755,7 @@ netlink_subscribe_changes(struct lldpd *cfg)
+ 	    netlink_group_mask(RTNLGRP_IPV4_IFADDR) |
+ 	    netlink_group_mask(RTNLGRP_IPV6_IFADDR);
+ 
+-	return netlink_connect(cfg, NETLINK_ROUTE, groups);
++	return netlink_connect(cfg, groups);
+ }
+ 
+ /**
+@@ -742,10 +763,8 @@ netlink_subscribe_changes(struct lldpd *cfg)
+ static void
+ netlink_change_cb(struct lldpd *cfg)
+ {
+-	if (cfg->g_netlink == NULL)
+-		return;
+-	netlink_recv(cfg,
+-	    cfg->g_netlink->devices,
++	if (cfg->g_netlink == NULL) return;
++	netlink_recv(cfg, cfg->g_netlink->nl_socket_changes, cfg->g_netlink->devices,
+ 	    cfg->g_netlink->addresses);
+ }
+ 
+@@ -788,16 +807,18 @@ netlink_initialize(struct lldpd *cfg)
+ 	}
+ 	TAILQ_INIT(ifs);
+ 
+-	if (netlink_send(cfg->g_netlink->nl_socket, RTM_GETADDR, AF_UNSPEC, 1) == -1)
++	if (netlink_send(cfg->g_netlink->nl_socket_queries, RTM_GETADDR, AF_UNSPEC,
++		1) == -1)
+ 		goto end;
+-	netlink_recv(cfg, NULL, ifaddrs);
+-	if (netlink_send(cfg->g_netlink->nl_socket, RTM_GETLINK, AF_PACKET, 2) == -1)
++	netlink_recv(cfg, cfg->g_netlink->nl_socket_queries, NULL, ifaddrs);
++	if (netlink_send(cfg->g_netlink->nl_socket_queries, RTM_GETLINK, AF_PACKET,
++		2) == -1)
+ 		goto end;
+-	netlink_recv(cfg, ifs, NULL);
++	netlink_recv(cfg, cfg->g_netlink->nl_socket_queries, ifs, NULL);
+ 
+ 	/* Listen to any future change */
+ 	cfg->g_iface_cb = netlink_change_cb;
+-	if (levent_iface_subscribe(cfg, cfg->g_netlink->nl_socket) == -1) {
++	if (levent_iface_subscribe(cfg, cfg->g_netlink->nl_socket_changes) == -1) {
+ 		goto end;
+ 	}
+ 
+@@ -814,8 +835,10 @@ void
+ netlink_cleanup(struct lldpd *cfg)
+ {
+ 	if (cfg->g_netlink == NULL) return;
+-	if (cfg->g_netlink->nl_socket != -1)
+-		close(cfg->g_netlink->nl_socket);
++	if (cfg->g_netlink->nl_socket_changes != -1)
++		close(cfg->g_netlink->nl_socket_changes);
++	if (cfg->g_netlink->nl_socket_queries != -1)
++		close(cfg->g_netlink->nl_socket_queries);
+ 	interfaces_free_devices(cfg->g_netlink->devices);
+ 	interfaces_free_addresses(cfg->g_netlink->addresses);
+ 
+-- 
+2.17.1
+
