@@ -694,9 +694,9 @@
             "path_info": {"sysfs_base_path": "/sys/class/hwmon/hwmon1"},
             "attr_list":
             [
-                { "attr_name": "temp1_high_crit_threshold", "drv_attr_name":"temp4_crit"},
-                { "attr_name": "temp1_high_threshold", "drv_attr_name":"temp4_max"},
-                { "attr_name": "temp1_input", "drv_attr_name":"temp4_input"}
+                { "attr_name": "temp1_high_crit_threshold", "drv_attr_name":"temp2_crit"},
+                { "attr_name": "temp1_high_threshold", "drv_attr_name":"temp2_max"},
+                { "attr_name": "temp1_input", "drv_attr_name":"temp2_input"}
             ]
         }
     },
@@ -709,9 +709,9 @@
             "path_info": {"sysfs_base_path": "/sys/class/hwmon/hwmon1"},
             "attr_list":
             [
-                { "attr_name": "temp1_high_crit_threshold", "drv_attr_name":"temp8_crit"},
-                { "attr_name": "temp1_high_threshold", "drv_attr_name":"temp8_max"},
-                { "attr_name": "temp1_input", "drv_attr_name":"temp8_input"}
+                { "attr_name": "temp1_high_crit_threshold", "drv_attr_name":"temp3_crit"},
+                { "attr_name": "temp1_high_threshold", "drv_attr_name":"temp3_max"},
+                { "attr_name": "temp1_input", "drv_attr_name":"temp3_input"}
             ]
         }
     },
@@ -724,9 +724,9 @@
             "path_info": {"sysfs_base_path": "/sys/class/hwmon/hwmon1"},
             "attr_list":
             [
-                { "attr_name": "temp1_high_crit_threshold", "drv_attr_name":"temp10_crit"},
-                { "attr_name": "temp1_high_threshold", "drv_attr_name":"temp10_max"},
-                { "attr_name": "temp1_input", "drv_attr_name":"temp10_input"}
+                { "attr_name": "temp1_high_crit_threshold", "drv_attr_name":"temp4_crit"},
+                { "attr_name": "temp1_high_threshold", "drv_attr_name":"temp4_max"},
+                { "attr_name": "temp1_input", "drv_attr_name":"temp4_input"}
             ]
         }
     },
@@ -739,9 +739,9 @@
             "path_info": {"sysfs_base_path": "/sys/class/hwmon/hwmon1"},
             "attr_list":
             [
-                { "attr_name": "temp1_high_crit_threshold", "drv_attr_name":"temp14_crit"},
-                { "attr_name": "temp1_high_threshold", "drv_attr_name":"temp14_max"},
-                { "attr_name": "temp1_input", "drv_attr_name":"temp14_input"}
+                { "attr_name": "temp1_high_crit_threshold", "drv_attr_name":"temp5_crit"},
+                { "attr_name": "temp1_high_threshold", "drv_attr_name":"temp5_max"},
+                { "attr_name": "temp1_input", "drv_attr_name":"temp5_input"}
             ]
         }
     },
