@@ -57,6 +57,26 @@ class Sfp(PddfSfp):
 
         return name
 
+    def get_reset_status(self):
+        """
+        Retrieves the reset status of SFP
+        Returns:
+            A Boolean, True if reset enabled, False if disabled
+        """
+        if self.sfp_type in self.UNRESETTABLE_TYPE_LIST:
+            return False
+        return super().get_reset_status()
+
+    def reset(self):
+        """
+        Reset SFP and return all user module settings to their default srate.
+        Returns:
+            A boolean, True if successful, False if not
+        """
+        if self.sfp_type in self.UNRESETTABLE_TYPE_LIST:
+            return False
+        return super().reset()
+
     def get_position_in_parent(self):
         """Retrieves 1-based relative physical position in parent device."""
         return self.port_index
@@ -201,25 +221,3 @@ class Sfp(PddfSfp):
         except NotImplementedError:
             pass
         return self.__get_error_description()
-
-    def get_reset_status(self):
-        """
-        Retrieves the reset status of SFP
-
-        Returns:
-            A Boolean, True if reset enabled, False if disabled
-        """
-        if self.sfp_type in self.UNRESETTABLE_TYPE_LIST:
-            return False
-        return super().get_reset_status()
-
-    def reset(self):
-        """
-        Reset SFP and return all user module settings to their default srate.
-
-        Returns:
-            A boolean, True if successful, False if not
-        """
-        if self.sfp_type in self.UNRESETTABLE_TYPE_LIST:
-            return False
-        return super().reset()
