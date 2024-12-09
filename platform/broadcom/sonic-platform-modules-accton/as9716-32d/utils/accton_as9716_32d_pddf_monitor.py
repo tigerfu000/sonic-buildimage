@@ -455,12 +455,12 @@ class device_monitor(object):
 
         if test_temp == 0:
             for i in range(THERMAL_NUM_MAX):
-                thermal_val.append((TYPE_SENSOR, None, 
+                thermal_val.append((TYPE_SENSOR, None,
                                     platform_chassis.get_thermal(i).get_temperature()*1000))
 
             for port_num in monitor_port:
                 sfp = platform_chassis.get_sfp(port_num)
-                thermal_val.append((TYPE_TRANSCEIVER, sfp, 
+                thermal_val.append((TYPE_TRANSCEIVER, sfp,
                                     self.__get_transceiver_temperature(sfp.get_name()) * 1000))
         else:
             for i in range(THERMAL_NUM_MAX):
@@ -654,13 +654,13 @@ def main(argv):
     cmd_str = ["i2cset", "-y", "-f", "17", "0x66", "0x33", "0x1"]
     status, output = getstatusoutput_noshell(cmd_str)
     if status:
-        print("Warning: Fan speed watchdog could not be enabled")   
-    
+        print("Warning: Fan speed watchdog could not be enabled")
+
     cmd_str = ["i2cset", "-y", "-f", "17", "0x66", "0x31", "0xF0"]
     status, output = getstatusoutput_noshell(cmd_str)
     if status:
         print("Warning: Fan speed watchdog timer could not be disabled")
-    
+
 
     as9716_32d_set_fan_speed(FAN_DUTY_CYCLE_MAX)
     monitor = device_monitor(log_file, log_level)
@@ -670,7 +670,7 @@ def main(argv):
         monitor.manage_fans()
         getstatusoutput_noshell(cmd_kick)
         time.sleep(10)
-        
+
         status, output = getstatusoutput_noshell(cmd_check_wdt)
         if status is not None:
             val= int(output,16)
