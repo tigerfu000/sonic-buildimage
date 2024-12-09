@@ -380,7 +380,7 @@
                 "low-threshold": false,
                 "high-threshold": true,
                 "low-crit-threshold": false,
-                "high-crit-threshold": false
+                "high-crit-threshold": true
             },
             {
                 "name": "MB_RightCenter_temp(0x49)",
@@ -388,7 +388,7 @@
                 "low-threshold": false,
                 "high-threshold": true,
                 "low-crit-threshold": false,
-                "high-crit-threshold": false
+                "high-crit-threshold": true
             },
             {
                 "name": "MB_LeftCenter_temp(0x4a)",
@@ -396,7 +396,7 @@
                 "low-threshold": false,
                 "high-threshold": true,
                 "low-crit-threshold": false,
-                "high-crit-threshold": false
+                "high-crit-threshold": true
             },
             {
                 "name": "CB_temp(0x4b)",
@@ -404,7 +404,7 @@
                 "low-threshold": false,
                 "high-threshold": true,
                 "low-crit-threshold": false,
-                "high-crit-threshold": false
+                "high-crit-threshold": true
             },
             {
                 "name": "OCXO_temp(0x4c)",
@@ -412,7 +412,7 @@
                 "low-threshold": false,
                 "high-threshold": true,
                 "low-crit-threshold": false,
-                "high-crit-threshold": false
+                "high-crit-threshold": true
             },
             {
                 "name": "FB_1_temp(0x4e)",
@@ -420,7 +420,7 @@
                 "low-threshold": false,
                 "high-threshold": true,
                 "low-crit-threshold": false,
-                "high-crit-threshold": false
+                "high-crit-threshold": true
             },
             {
                 "name": "FB_2_temp(0x4f)",
@@ -428,11 +428,11 @@
                 "low-threshold": false,
                 "high-threshold": true,
                 "low-crit-threshold": false,
-                "high-crit-threshold": false
+                "high-crit-threshold": true
             },
             {
                 "name": "CPU_Package_temp",
-                "controllable": false,
+                "controllable": true,
                 "low-threshold": false,
                 "high-threshold": true,
                 "low-crit-threshold": false,
@@ -440,7 +440,7 @@
             },
             {
                 "name": "CPU_Core_0_temp",
-                "controllable": false,
+                "controllable": true,
                 "low-threshold": false,
                 "high-threshold": true,
                 "low-crit-threshold": false,
@@ -448,7 +448,7 @@
             },
             {
                 "name": "CPU_Core_1_temp",
-                "controllable": false,
+                "controllable": true,
                 "low-threshold": false,
                 "high-threshold": true,
                 "low-crit-threshold": false,
@@ -456,7 +456,7 @@
             },
             {
                 "name": "CPU_Core_2_temp",
-                "controllable": false,
+                "controllable": true,
                 "low-threshold": false,
                 "high-threshold": true,
                 "low-crit-threshold": false,
@@ -464,13 +464,14 @@
             },
             {
                 "name": "CPU_Core_3_temp",
-                "controllable": false,
+                "controllable": true,
                 "low-threshold": false,
                 "high-threshold": true,
                 "low-crit-threshold": false,
                 "high-crit-threshold": true
             }
         ],
+
         "sfps": [
             {
                 "name": "Ethernet0"
@@ -567,6 +568,12 @@
             },
             {
                 "name": "Ethernet248"
+            },
+            {
+                "name": "Ethernet256"
+            },
+            {
+                "name": "Ethernet257"
             }
         ]
     },
@@ -985,7 +992,22 @@
                 "2x50G(4)": ["Eth32/1(Port32)", "Eth32/2(Port32)"],
                 "4x25G[10G](4)": ["Eth32/1(Port32)", "Eth32/2(Port32)", "Eth32/3(Port32)", "Eth32/4(Port32)"]
             }
+        },
+
+        "Ethernet256": {
+            "index": "33",
+            "lanes": "257",
+            "breakout_modes": {
+                "1x10G[1G]": ["Eth33(Port33)"]
+            }
+        },
+
+        "Ethernet257": {
+            "index": "34",
+            "lanes": "258",
+            "breakout_modes": {
+                "1x10G[1G]": ["Eth34(Port34)"]
+            }
         }
     }
 }
-

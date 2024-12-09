@@ -100,7 +100,7 @@ class Chassis(PddfChassis):
             return SfpBase.SFP_PORT_TYPE_BIT_QSFP | SfpBase.SFP_PORT_TYPE_BIT_QSFP_PLUS | SfpBase.SFP_PORT_TYPE_BIT_QSFP28 | SfpBase.SFP_PORT_TYPE_BIT_QSFP56 | SfpBase.SFP_PORT_TYPE_BIT_QSFPDD
         else:
             return SfpBase.SFP_PORT_TYPE_BIT_SFP
-    
+
     def get_position_in_parent(self):
         """
         Retrieves 1-based relative physical position in parent device.
@@ -119,8 +119,8 @@ class Chassis(PddfChassis):
         Returns:
             bool: True if it is replaceable.
         """
-        return False    
-        
+        return False
+
     def get_revision(self):
         """
         Retrieves the hardware revision of the device
