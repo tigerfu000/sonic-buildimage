@@ -87,6 +87,10 @@ class Thermal(PddfThermal):
 
     def __init__(self, index, pddf_data=None, pddf_plugin_data=None, is_psu_thermal=False, psu_index=0):
         PddfThermal.__init__(self, index, pddf_data, pddf_plugin_data, is_psu_thermal, psu_index)
+
+        self.pddf_obj = pddf_data
+        self.thermal_obj_name = "TEMP{}".format(self.thermal_index)
+        self.thermal_obj = self.pddf_obj.data[self.thermal_obj_name]
         # Threshold Configuration
         self.__conf = DeviceThreshold(self.get_name())
         # Default threshold.
@@ -153,7 +157,7 @@ class Thermal(PddfThermal):
         if default_value != NOT_AVAILABLE:
             return float(default_value)
 
-        raise NotImplementedError
+        return super().get_low_threshold()
 
     def set_low_threshold(self, temperature):
         try:
@@ -183,7 +187,7 @@ class Thermal(PddfThermal):
         if default_value != NOT_AVAILABLE:
             return float(default_value)
 
-        raise NotImplementedError
+        return super().get_low_threshold()
 
     def get_high_critical_threshold(self):
         value = self.__conf.get_high_critical_threshold()
@@ -194,7 +198,7 @@ class Thermal(PddfThermal):
         if default_value != NOT_AVAILABLE:
             return float(default_value)
 
-        raise NotImplementedError
+        return super().get_high_critical_threshold()
 
     def set_high_critical_threshold(self, temperature):
         try:
@@ -243,7 +247,7 @@ class Thermal(PddfThermal):
         if default_value != NOT_AVAILABLE:
             return float(default_value)
 
-        raise NotImplementedError
+        return super().get_low_critical_threshold()
 
     def get_model(self):
         """
@@ -280,7 +284,7 @@ class Thermal(PddfThermal):
             A float number, the maximum recorded temperature of thermal in Celsius
             up to nearest thousandth of one degree Celsius, e.g. 30.125
         """
-        if self.min_temperature is None:
+        if self.max_temperature is None:
             self.get_temperature()
 
         return self.max_temperature

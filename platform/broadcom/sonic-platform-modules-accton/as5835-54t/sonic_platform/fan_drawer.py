@@ -29,7 +29,7 @@ class FanDrawer(PddfFanDrawer):
         Returns:
             string: Model/part number of device
         """
-        return 'N/A'
+        return self._fan_list[0].get_model()
 
     def get_serial(self):
         """
@@ -37,4 +37,5 @@ class FanDrawer(PddfFanDrawer):
         Returns:
             string: Serial number of device
         """
-        return 'N/A'
+        return self._fan_list[0].get_serial()
+

@@ -40,6 +40,7 @@ except ImportError as e:
 VERSION = '1.0'
 FUNCTION_NAME = 'accton_as5835_54t_monitor'
 DUTY_MAX = 100
+sensors_name_check = ""
 
 global log_file
 global log_level
@@ -52,6 +53,9 @@ class accton_as5835_54t_monitor(object):
 
     def __init__(self, log_file, log_level):
         """Needs a logger and a logger level."""
+
+        self.thermal = ThermalUtil()
+        self.fan = FanUtil()
         # set up logging to file
         logging.basicConfig(
             filename=log_file,
@@ -68,6 +72,12 @@ class accton_as5835_54t_monitor(object):
             formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
             console.setFormatter(formatter)
             logging.getLogger('').addHandler(console)
+
+        sys_handler = logging.handlers.SysLogHandler(address = '/dev/log')
+        sys_handler.setLevel(logging.INFO)
+        formatter = logging.Formatter('#%(module)s: %(message)s')
+        sys_handler.setFormatter(formatter)
+        logging.getLogger('').addHandler(sys_handler)
 
         logging.debug('SET. logfile:%s / loglevel:%d', log_file, log_level)
 
@@ -88,9 +98,10 @@ class accton_as5835_54t_monitor(object):
         FAN_LEV4_DOWN_TEMP = 42700
         FAN_LEV4_SPEED_PERC = 40
 
+        global sensors_name_check
 
-        thermal = ThermalUtil()
-        fan = FanUtil()
+        thermal = self.thermal
+        fan = self.fan
 
         temp2 = thermal.get_thermal_2_val()
         if temp2 is None:
@@ -101,6 +112,8 @@ class accton_as5835_54t_monitor(object):
             return False
 
         new_temp = (temp2 + temp3) / 2
+        if sensors_name_check == "":
+            sensors_name_check = "({} + {})/2".format(thermal.get_thermal_to_device_name(2), thermal.get_thermal_to_device_name(3))
 
         for x in range(fan.get_idx_fan_start(), fan.get_num_fans()+1):
             fan_stat = fan.get_fan_status(x)
@@ -134,7 +147,6 @@ class accton_as5835_54t_monitor(object):
                     self._new_perc = FAN_LEV3_SPEED_PERC
                 else:
                     self._new_perc = FAN_LEV4_SPEED_PERC
-                logging.debug('INFO. SET. FAN_SPEED as %d (new THERMAL temp:%d)', self._new_perc, new_temp)
             else:
                 if new_temp <= FAN_LEV4_DOWN_TEMP:
                     self._new_perc = FAN_LEV4_SPEED_PERC
@@ -144,7 +156,6 @@ class accton_as5835_54t_monitor(object):
                     self._new_perc = FAN_LEV2_SPEED_PERC
                 else:
                     self._new_perc = FAN_LEV1_SPEED_PERC
-                logging.debug('INFO. SET. FAN_SPEED as %d (new THERMAL temp:%d)', self._new_perc, new_temp)
 
         cur_perc = fan.get_fan_duty_cycle()
         if cur_perc == self._new_perc:
@@ -157,9 +168,29 @@ class accton_as5835_54t_monitor(object):
         else:
             logging.debug('INFO: FAIL. set_fan_duty_cycle (%d)', self._new_perc)
 
-        logging.debug('INFO: GET. ori_perc is %d. ori_temp is %d', cur_perc, self._ori_temp)
+        if self._new_perc > cur_perc:
+            if self._new_perc == FAN_LEV3_SPEED_PERC:
+                logging.warning('Monitor %s, temperature is %.1f. Temperature is over the warning threshold(%.1f) of thermal policy.',
+                                sensors_name_check, new_temp/1000, FAN_LEV3_UP_TEMP/1000)
+            elif self._new_perc == FAN_LEV2_SPEED_PERC:
+                logging.warning('Monitor %s, temperature is %.1f. Temperature is over the error threshold(%.1f) of thermal policy.',
+                                sensors_name_check, new_temp/1000, FAN_LEV2_UP_TEMP/1000)
+            elif self._new_perc == FAN_LEV1_SPEED_PERC:
+                logging.warning('Monitor %s, temperature is %.1f. Temperature is over the critical threshold(%.1f) of thermal policy.',
+                                sensors_name_check, new_temp/1000, FAN_LEV1_UP_TEMP/1000)
+
+            logging.warning('Increase fan duty_cycle from %d%% to %d%%.', cur_perc, self._new_perc)
+        else:
+            if self._new_perc == FAN_LEV4_SPEED_PERC:
+                logging.info('Monitor %s, temperature is less than the warning threshold(%.1f) of thermal policy.', sensors_name_check, FAN_LEV4_DOWN_TEMP/1000)
+            elif self._new_perc == FAN_LEV3_SPEED_PERC:
+                logging.info('Monitor %s, temperature is less than the error threshold(%.1f) of thermal policy.', sensors_name_check, FAN_LEV3_DOWN_TEMP/1000)
+            elif self._new_perc == FAN_LEV2_SPEED_PERC:
+                logging.info('Monitor %s, temperature is less than the critical threshold(%.1f) of thermal policy.', sensors_name_check, FAN_LEV2_DOWN_TEMP/1000)
+
+            logging.info('Decrease fan duty_cycle from %d%% to %d%%.', cur_perc, self._new_perc)
+
         self._ori_temp = new_temp
-        logging.debug('INFO: UPDATE. ori_perc to %d. ori_temp to %d', cur_perc, self._ori_temp)
 
         return True
 

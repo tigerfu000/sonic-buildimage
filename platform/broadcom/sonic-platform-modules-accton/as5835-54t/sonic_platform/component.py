@@ -15,16 +15,20 @@ except ImportError as e:
     raise ImportError(str(e) + "- required module not found")
 
 CPLD_ADDR_MAPPING = {
-    "CPLD1": ['3', '0x60'],
-    "CPLD2": ['3', '0x61'],
-    "CPLD3": ['3', '0x62']
+    "MB_CPLD1": ['3', '0x60'],
+    "MB_CPLD2": ['3', '0x61'],
+    "MB_CPLD3": ['3', '0x62'],
+    "FAN_CPLD": ['3', '0x63'],
+    "CPU_CPLD": ['1', '0x65']
 }
 SYSFS_PATH = "/sys/bus/i2c/devices/"
 BIOS_VERSION_PATH = "/sys/class/dmi/id/bios_version"
 COMPONENT_LIST= [
-   ("CPLD1", "CPLD 1"),
-   ("CPLD2", "CPLD 2"),
-   ("CPLD3", "CPLD 3"),
+   ("MB_CPLD1", "Mainboard CPLD(0x60)"),
+   ("MB_CPLD2", "Mainboard CPLD(0x61)"),
+   ("MB_CPLD3", "Mainboard CPLD(0x62)"),
+   ("FAN_CPLD", "Fan board CPLD(0x63)"),
+   ("CPU_CPLD", "CPU CPLD(0x65)"),
    ("BIOS", "Basic Input/Output System")
    
 ]
@@ -37,22 +41,6 @@ class Component(ComponentBase):
     def __init__(self, component_index=0):
         self.index = component_index
         self.name = self.get_name()
-
-    def __run_command(self, command):
-        # Run bash command and print output to stdout
-        try:
-            process = subprocess.Popen(
-                shlex.split(command), stdout=subprocess.PIPE)
-            while True:
-                output = process.stdout.readline()
-                if output == '' and process.poll() is not None:
-                    break
-            rc = process.poll()
-            if rc != 0:
-                return False
-        except Exception:
-            return False
-        return True
 
     def __get_bios_version(self):
         # Retrieves the BIOS firmware version
@@ -197,3 +185,4 @@ class Component(ComponentBase):
             bool: True if it is replaceable.
         """
         return False
+

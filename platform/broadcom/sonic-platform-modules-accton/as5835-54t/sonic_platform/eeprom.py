@@ -20,3 +20,8 @@ class Eeprom(PddfEeprom):
 
 
     # Provide the functions/variables below for which implementation is to be overwritten
+    def read_eeprom(self):
+        try:
+            return super().read_eeprom()
+        except:
+            return "N/A"
