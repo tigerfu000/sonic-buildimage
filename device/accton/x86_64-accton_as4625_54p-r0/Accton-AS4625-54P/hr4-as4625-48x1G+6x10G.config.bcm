@@ -1,4 +1,4 @@
-stable_size=0x4f00000
+stable_size=0x5000000
 
 #polarity/lanemap is using TH2 style.
 #core_clock_frequency=496
