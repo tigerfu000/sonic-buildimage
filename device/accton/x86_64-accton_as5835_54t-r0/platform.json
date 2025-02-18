@@ -8,13 +8,19 @@
         },
         "components": [
             {
-                "name": "CPLD1"
+                "name": "MB_CPLD1"
             },
             {
-                "name": "CPLD2"
+                "name": "MB_CPLD2"
             },
             {
-                "name": "CPLD3"
+                "name": "MB_CPLD3"
+            },
+            {
+                "name": "FAN_CPLD"
+            },
+            {
+                "name": "CPU_CPLD"
             },
             {
                 "name": "BIOS"

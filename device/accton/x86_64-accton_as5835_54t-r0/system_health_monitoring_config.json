@@ -3,15 +3,13 @@
     "devices_to_ignore": [
         "asic",
         "psu.voltage",
-        "psu.temperature",
-        "PSU1_FAN1.speed",
-        "PSU2_FAN1.speed"
+        "psu.temperature"
     ],
     "user_defined_checkers": [],
     "polling_interval": 60,
     "led_color": {
         "fault": "amber",
         "normal": "green",
-        "booting": "green"
+        "booting": "off"
     }
 }

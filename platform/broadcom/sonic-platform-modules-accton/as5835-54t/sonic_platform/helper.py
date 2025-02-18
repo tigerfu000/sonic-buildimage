@@ -39,18 +39,13 @@ class APIHelper():
             status = False
         return status, result
 
-    def run_interactive_command(self, cmd):
-        try:
-            os.system(cmd)
-        except Exception:
-            return False
-        return True
-
     def read_txt_file(self, file_path):
         try:
             with open(file_path, 'r', errors='replace') as fd:
                 data = fd.read()
-                return data.strip()
+                ret =  data.strip()
+                if len(ret) > 0:
+                    return ret
         except IOError:
             pass
         return None
@@ -62,49 +57,6 @@ class APIHelper():
         except IOError:
             return False
         return True
-
-    def ipmi_raw(self, netfn, cmd):
-        status = True
-        result = ""
-        try:
-            err, raw_data = getstatusoutput_noshell_pipe(['ipmitool', 'raw', str(netfn), str(cmd)])
-            if err == [0]:
-                result = raw_data.strip()
-            else:
-                status = False
-        except Exception:
-            status = False
-        return status, result
-
-    def ipmi_fru_id(self, id, key=None):
-        status = True
-        result = ""
-        try:
-            if (key is None):
-                err, raw_data = getstatusoutput_noshell_pipe(['ipmitool', 'fru', 'print', str(id)])
-            else:
-                err, raw_data = getstatusoutput_noshell_pipe(['ipmitool', 'fru', 'print', str(id)], ['grep', str(key)])
-            if err == [0] or err == [0, 0]:
-                result = raw_data.strip()
-            else:
-                status = False
-        except Exception:
-            status = False
-        return status, result
-
-    def ipmi_set_ss_thres(self, id, threshold_key, value):
-        status = True
-        result = ""
-        try:
-            err, raw_data = getstatusoutput_noshell_pipe(['ipmitool', 'sensor', 'thresh', str(id), str(threshold_key), str(value)])
-            if err == [0]:
-                result = raw_data.strip()
-            else:
-                status = False
-        except Exception:
-            status = False
-        return status, result
-
 
 class FileLock:
     """
@@ -364,4 +316,3 @@ class DeviceThreshold:
             raise ValueError('The parameter requires a float string. ex:\"30.1\"')
 
         return self.__set_data(self.LOW_CRIT_THRESHOLD, temperature)
-
