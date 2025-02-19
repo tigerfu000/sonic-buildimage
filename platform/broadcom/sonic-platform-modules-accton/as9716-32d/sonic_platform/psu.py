@@ -13,7 +13,7 @@ class Psu(PddfPsu):
 
     def __init__(self, index, pddf_data=None, pddf_plugin_data=None):
         PddfPsu.__init__(self, index, pddf_data, pddf_plugin_data)
-        
+
     # Provide the functions/variables below for which implementation is to be overwritten
     def get_name(self):
         return "PSU-{}".format(self.psu_index)
@@ -22,8 +22,8 @@ class Psu(PddfPsu):
         """
         Retrieves the high threshold PSU voltage output
         Returns:
-            A float number, the high threshold output voltage in volts, 
-            e.g. 12.1 
+            A float number, the high threshold output voltage in volts,
+            e.g. 12.1
         """
         return 14.72
 
@@ -31,8 +31,8 @@ class Psu(PddfPsu):
         """
         Retrieves the low threshold PSU voltage output
         Returns:
-            A float number, the low threshold output voltage in volts, 
-            e.g. 12.1 
+            A float number, the low threshold output voltage in volts,
+            e.g. 12.1
         """
         return 7.68
 
