@@ -33,6 +33,9 @@ ifp_inports_support_enable=1
 
 num_ipv6_lpm_128b_entries=512
 
+# Let Broadcom community sai to load custom_led.bin
+led_fw_path="/usr/share/sonic/platform/"
+
 
 dport_map_port_25=1
 dport_map_port_26=2

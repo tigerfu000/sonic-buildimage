@@ -38,6 +38,9 @@ bcm_tunnel_term_compatible_mode.0=1
 sai_tunnel_support=2
 sai_tunnel_global_sip_mask_enable=1
 
+# Let Broadcom community sai to load custom_led.bin
+led_fw_path="/usr/share/sonic/platform/"
+
 #BC0#
 dport_map_port_1=81
 dport_map_port_2=82

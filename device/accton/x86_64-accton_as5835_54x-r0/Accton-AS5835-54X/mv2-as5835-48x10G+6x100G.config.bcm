@@ -51,6 +51,9 @@ use_all_splithorizon_groups=1
 host_as_route_disable=1
 sai_tunnel_support=1
 
+# Let Broadcom community sai to load custom_led.bin
+led_fw_path="/usr/share/sonic/platform/"
+
 #FC0
 dport_map_port_1=1
 dport_map_port_2=2
