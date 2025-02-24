@@ -459,15 +459,13 @@ exit:
     return status;
 }
 
-static int accton_i2c_psu_remove(struct i2c_client *client)
+static void accton_i2c_psu_remove(struct i2c_client *client)
 {
     struct accton_i2c_psu_data *data = i2c_get_clientdata(client);
 
     hwmon_device_unregister(data->hwmon_dev);
     sysfs_remove_group(&client->dev.kobj, &accton_i2c_psu_group);
     kfree(data);
-
-    return 0;
 }
 /* Support psu moduel
  */

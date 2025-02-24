@@ -489,15 +489,13 @@ exit:
     return status;
 }
 
-static int ym2651y_remove(struct i2c_client *client)
+static void ym2651y_remove(struct i2c_client *client)
 {
     struct ym2651y_data *data = i2c_get_clientdata(client);
 
     hwmon_device_unregister(data->hwmon_dev);
     sysfs_remove_group(&client->dev.kobj, &ym2651y_group);
     kfree(data);
-
-    return 0;
 }
 
 static const struct i2c_device_id ym2651y_id[] = {
